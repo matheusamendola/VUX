@@ -100,3 +100,34 @@ pub fn clear() {
         update_cursor();
     }
 }
+
+/// Define a posicao X do cursor
+pub fn set_cursor_x(x: usize) {
+    unsafe {
+        if x < VGA_WIDTH {
+            CURSOR_X = x;
+            update_cursor();
+        }
+    }
+}
+
+/// Reescreve o buffer de input na linha atual (a partir do prompt)
+pub fn rewrite_input(prompt_len: usize, buffer: &[u8], len: usize) {
+    unsafe {
+        let vga = vga_buffer();
+        let start = CURSOR_Y * VGA_WIDTH + prompt_len;
+
+        // Limpar area do input
+        for x in prompt_len..VGA_WIDTH {
+            let offset = CURSOR_Y * VGA_WIDTH + x;
+            *vga.add(offset) = (b' ' as u16) | ((COLOR_WHITE as u16) << 8);
+        }
+
+        // Escrever novo conteudo
+        for i in 0..len {
+            if prompt_len + i < VGA_WIDTH {
+                *vga.add(start + i) = (buffer[i] as u16) | ((COLOR_WHITE as u16) << 8);
+            }
+        }
+    }
+}

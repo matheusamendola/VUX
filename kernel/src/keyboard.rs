@@ -1,6 +1,12 @@
-//! Driver de teclado PS/2
+//! Driver de teclado PS/2 com suporte a teclas especiais
 
 use crate::io::inb;
+
+/// Teclas especiais
+pub const KEY_UP: u8 = 0x80;
+pub const KEY_DOWN: u8 = 0x81;
+pub const KEY_LEFT: u8 = 0x82;
+pub const KEY_RIGHT: u8 = 0x83;
 
 /// Mapa de scancodes para ASCII
 static SCANCODE_MAP: [u8; 58] = [
@@ -20,12 +26,34 @@ fn scancode_to_ascii(sc: u8) -> u8 {
     }
 }
 
-/// Le uma tecla (bloqueante)
+/// Le uma tecla (bloqueante) - suporta teclas estendidas (setas)
 pub fn read_key() -> u8 {
     loop {
         // Verifica se ha dados disponiveis
         if inb(0x64) & 1 != 0 {
             let scancode = inb(0x60);
+
+            // Scancode estendido (0xE0 prefix)
+            if scancode == 0xE0 {
+                // Esperar pelo proximo byte
+                while inb(0x64) & 1 == 0 {}
+                let extended = inb(0x60);
+
+                // Ignorar key release
+                if extended & 0x80 != 0 {
+                    continue;
+                }
+
+                // Mapear teclas estendidas
+                match extended {
+                    0x48 => return KEY_UP,
+                    0x50 => return KEY_DOWN,
+                    0x4B => return KEY_LEFT,
+                    0x4D => return KEY_RIGHT,
+                    _ => continue,
+                }
+            }
+
             // Ignora key release (bit 7 setado)
             if scancode & 0x80 == 0 {
                 let ascii = scancode_to_ascii(scancode);
