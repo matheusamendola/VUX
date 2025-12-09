@@ -1,9 +1,9 @@
 @echo off
-REM Script de Build para Windows (Kernel em Rust)
-REM Requer: NASM, Rust (nightly), i686-elf-ld ou lld, QEMU
+REM Script de Build para Windows (Kernel 64-bit em Rust)
+REM Requer: NASM, Rust (nightly), QEMU
 
 echo ========================================
-echo   Compilando Sistema Operacional (Rust)
+echo   Compilando OS 64-bit (Rust)
 echo ========================================
 
 REM Criar diretorio de build
@@ -19,8 +19,8 @@ if errorlevel 1 (
 echo       OK!
 
 echo.
-echo [2/4] Compilando kernel entry...
-nasm -f elf32 kernel/kernel_entry.asm -o build/kernel_entry.o
+echo [2/4] Compilando kernel entry (64-bit)...
+nasm -f elf64 kernel/kernel_entry.asm -o build/kernel_entry.o
 if errorlevel 1 (
     echo ERRO: Falha ao compilar kernel entry
     exit /b 1
@@ -41,14 +41,8 @@ echo       OK!
 
 echo.
 echo [4/4] Linkando kernel...
-REM Tente usar i686-elf-ld primeiro, senao use lld
-where i686-elf-ld >nul 2>nul
-if errorlevel 1 (
-    REM Usar rust-lld
-    rust-lld -flavor gnu -m elf_i386 -T linker.ld --oformat binary --gc-sections -o build/kernel.bin build/kernel_entry.o kernel/target/i686-unknown-none/release/libkernel.a
-) else (
-    i686-elf-ld -m elf_i386 -T linker.ld --oformat binary --gc-sections -o build/kernel.bin build/kernel_entry.o kernel/target/i686-unknown-none/release/libkernel.a
-)
+REM Usar rust-lld
+rust-lld -flavor gnu -m elf_x86_64 -T linker.ld --oformat binary --gc-sections -o build/kernel.bin build/kernel_entry.o kernel/target/x86_64-unknown-none/release/libkernel.a
 if errorlevel 1 (
     echo ERRO: Falha ao linkar kernel
     exit /b 1
@@ -64,6 +58,7 @@ echo.
 echo ========================================
 echo   Build concluido com sucesso!
 echo   Imagem: build\os-image.bin
+echo   Arquitetura: x86_64 (64-bit)
 echo ========================================
 echo.
-echo Para executar: qemu-system-i386 -fda build\os-image.bin
+echo Para executar: qemu-system-x86_64 -drive format=raw,file=build\os-image.bin,index=0,if=floppy

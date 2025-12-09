@@ -29,7 +29,7 @@ fn prompt() {
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
     clear();
-    print("Kernel Rust iniciado!\n");
+    print("Kernel Rust 64-bit iniciado!\n");
     prompt();
 
     loop {

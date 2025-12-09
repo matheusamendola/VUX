@@ -1,8 +1,8 @@
 //! Driver VGA em modo texto
 
-use crate::io::{outb};
+use crate::io::outb;
 
-const VGA_ADDRESS: usize = 0xB8000;
+const VGA_ADDRESS: u64 = 0xB8000;
 const VGA_WIDTH: usize = 80;
 const VGA_HEIGHT: usize = 25;
 const COLOR_WHITE: u8 = 0x0F;
@@ -100,4 +100,3 @@ pub fn clear() {
         update_cursor();
     }
 }
-

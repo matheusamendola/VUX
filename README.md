@@ -1,11 +1,12 @@
 # Mini OS
 
-Sistema operacional minimalista com kernel escrito em Rust, rodando em modo protegido i386.
+Sistema operacional minimalista com kernel escrito em Rust, rodando em Long Mode x86_64 (64-bit).
 
 ## Funcionalidades
 
-- Bootloader customizado em Assembly x86
-- Kernel em Rust (no_std)
+- Bootloader customizado em Assembly x86 com Long Mode
+- Kernel em Rust (no_std) 64-bit
+- Paginação com páginas de 2MB (huge pages)
 - CLI interativa com comandos
 - Driver VGA em modo texto (80x25)
 - Driver de teclado PS/2
@@ -48,7 +49,7 @@ make clean && make && make run
 ### Windows
 ```batch
 build.bat
-qemu-system-i386 -drive format=raw,file=build/os-image.bin,index=0,if=floppy
+qemu-system-x86_64 -drive format=raw,file=build/os-image.bin,index=0,if=floppy
 ```
 
 ### VS Code
@@ -71,7 +72,7 @@ OS/
 │   ├── Cargo.toml
 │   ├── .cargo/config.toml
 │   └── rust-toolchain.toml
-├── i686-unknown-none.json    # Target spec customizado
+├── x86_64-unknown-none.json  # Target spec customizado (64-bit)
 ├── linker.ld                 # Script do linker
 ├── Makefile                  # Build para Linux/WSL
 └── build.bat                 # Build para Windows
@@ -82,11 +83,16 @@ OS/
 1. **BIOS** carrega o bootloader (primeiro setor do disco) em `0x7C00`
 2. **Bootloader** (`boot.asm`):
    - Carrega o kernel do disco para `0x1000`
-   - Configura a GDT (Global Descriptor Table)
+   - Verifica suporte a Long Mode (CPUID)
+   - Configura GDT 32-bit temporária
    - Muda para modo protegido 32-bit
-   - Salta para o kernel
+   - Configura page tables (PML4 -> PDPT -> PDT com 2MB pages)
+   - Ativa PAE e Long Mode no EFER MSR
+   - Carrega GDT 64-bit
+   - Salta para o kernel em Long Mode
 3. **Kernel Entry** (`kernel_entry.asm`):
-   - Define `_start` como ponto de entrada
+   - Define `_start` como ponto de entrada (64-bit)
+   - Limpa registradores
    - Chama `kernel_main()` do Rust
 4. **Kernel Rust** (`lib.rs`):
    - Inicializa VGA e limpa a tela
@@ -96,10 +102,19 @@ OS/
 
 | Endereço | Conteúdo |
 |----------|----------|
-| `0x0000 - 0x7BFF` | Área livre / Stack |
-| `0x7C00 - 0x7DFF` | Bootloader (512 bytes) |
+| `0x0000 - 0x0FFF` | Área reservada |
 | `0x1000 - ...` | Kernel |
+| `0x7C00 - 0x7DFF` | Bootloader (512 bytes) |
+| `0x70000 - 0x72FFF` | Page Tables (PML4, PDPT, PDT) |
+| `0x90000` | Stack (cresce para baixo) |
 | `0xB8000` | Buffer VGA (texto) |
+
+## Paginação
+
+O bootloader configura paginação com páginas de 2MB (huge pages):
+- PML4[0] -> PDPT em 0x71000
+- PDPT[0] -> PDT em 0x72000
+- PDT[0-3] -> 4 páginas de 2MB (0-8MB mapeados)
 
 ## Licença
 
