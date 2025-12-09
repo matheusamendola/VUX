@@ -1,2 +1,17 @@
-/.vscode
-/build
+# Build
+/build/
+
+# Rust/Cargo
+**/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE
+/.vscode/
+/.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

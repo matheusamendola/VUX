@@ -1,4 +1,4 @@
-/* Linker Script para o Kernel */
+/* Linker Script para o Kernel (Rust + ASM) */
 
 /* Ponto de entrada do kernel */
 ENTRY(_start)
@@ -14,6 +14,7 @@ SECTIONS
     /* Secao de codigo */
     .text : ALIGN(4)
     {
+        *(.text._start)
         *(.text)
         *(.text.*)
     }
@@ -47,5 +48,7 @@ SECTIONS
     {
         *(.comment)
         *(.note.*)
+        *(.eh_frame)
+        *(.eh_frame_hdr)
     }
 }
