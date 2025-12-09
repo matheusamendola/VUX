@@ -93,6 +93,15 @@ int strcmp(const char* a, const char* b) {
     return *a - *b;
 }
 
+/* Comparar apenas o nome do comando */
+int cmd_match(const char* input, const char* name) {
+    while (*name && *input == *name) {
+        input++;
+        name++;
+    }
+    return (*name == 0) && (*input == 0 || *input == ' ');
+}
+
 /* Teclado - scancode para ASCII */
 char scancode_to_ascii(unsigned char sc) {
     static char map[128] = {
@@ -129,8 +138,11 @@ void process_cmd(char* cmd) {
     if (*cmd == 0) return;
 
     for (int i = 0; i < num_commands; i++) {
-        if (strcmp(cmd, commands[i].name) == 0) {
-            commands[i].func();
+        if (cmd_match(cmd, commands[i].name)) {
+            const char* arg = cmd;
+            while (*arg && *arg != ' ') arg++;
+            while (*arg == ' ') arg++;
+            commands[i].func(arg);
             return;
         }
     }

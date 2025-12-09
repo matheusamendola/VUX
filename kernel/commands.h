@@ -7,15 +7,11 @@ void clear(void);
 void outb(unsigned short port, unsigned char data);
 void outw(unsigned short port, unsigned short data);
 
-/* Comandos */
-void cmd_clear(void);
-void cmd_reboot(void);
-void cmd_shutdown(void);
-
 /* Estrutura de comando */
 typedef struct {
     const char* name;
-    void (*func)(void);
+    const char* desc;
+    void (*func)(const char* arg);
 } Command;
 
 /* Lista de comandos */

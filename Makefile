@@ -8,7 +8,7 @@ LD = ld
 # Flags
 ASM_FLAGS = -f bin
 ASM_FLAGS_ELF = -f elf32
-CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nostdinc -fno-builtin -Wall -Wextra -c
+CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nostdinc -fno-builtin -Wall -Wextra -Wno-unused-parameter -c
 LDFLAGS = -m elf_i386 -T linker.ld --oformat binary
 
 # Diretorios
