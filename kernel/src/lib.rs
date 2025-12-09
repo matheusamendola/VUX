@@ -122,7 +122,7 @@ unsafe fn delete_char() {
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
     clear();
-    print("Kernel Rust 64-bit iniciado!\n");
+    print("VUX OS v.01\n");
     prompt();
 
     loop {
