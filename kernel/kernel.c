@@ -2,6 +2,8 @@
  * Kernel com CLI
  */
 
+#include "commands.h"
+
 #define VGA_ADDRESS 0xB8000
 #define VGA_WIDTH   80
 #define VGA_HEIGHT  25
@@ -15,14 +17,18 @@ char input_buffer[256];
 int input_pos = 0;
 
 /* Portas I/O */
-static inline unsigned char inb(unsigned short port) {
+unsigned char inb(unsigned short port) {
     unsigned char result;
     __asm__ __volatile__("inb %1, %0" : "=a"(result) : "Nd"(port));
     return result;
 }
 
-static inline void outb(unsigned short port, unsigned char data) {
+void outb(unsigned short port, unsigned char data) {
     __asm__ __volatile__("outb %0, %1" : : "a"(data), "Nd"(port));
+}
+
+void outw(unsigned short port, unsigned short data) {
+    __asm__ __volatile__("outw %0, %1" : : "a"(data), "Nd"(port));
 }
 
 /* Atualizar cursor de hardware */
@@ -117,25 +123,21 @@ void prompt(void) {
     print("> ");
 }
 
-/* Reboot */
-void reboot(void) {
-    outb(0x64, 0xFE);
-}
-
 /* Processar comando */
 void process_cmd(char* cmd) {
     while (*cmd == ' ') cmd++;
     if (*cmd == 0) return;
 
-    if (strcmp(cmd, "clear") == 0) {
-        clear();
-    } else if (strcmp(cmd, "reboot") == 0) {
-        reboot();
-    } else {
-        print("Comando desconhecido: ");
-        print(cmd);
-        print("\n");
+    for (int i = 0; i < num_commands; i++) {
+        if (strcmp(cmd, commands[i].name) == 0) {
+            commands[i].func();
+            return;
+        }
     }
+
+    print("Comando desconhecido: ");
+    print(cmd);
+    print("\n");
 }
 
 /* Main */

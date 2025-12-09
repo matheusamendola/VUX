@@ -25,10 +25,12 @@ OS_IMAGE = $(BUILD_DIR)/os-image.bin
 BOOT_SRC = $(BOOT_DIR)/boot.asm
 KERNEL_ENTRY_SRC = $(KERNEL_DIR)/kernel_entry.asm
 KERNEL_SRC = $(KERNEL_DIR)/kernel.c
+COMMANDS_SRC = $(KERNEL_DIR)/commands.c
 
 # Arquivos objeto
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/kernel_entry.o
 KERNEL_OBJ = $(BUILD_DIR)/kernel.o
+COMMANDS_OBJ = $(BUILD_DIR)/commands.o
 
 # Alvo padrao
 all: $(BUILD_DIR) $(OS_IMAGE)
@@ -47,10 +49,14 @@ $(KERNEL_ENTRY_OBJ): $(KERNEL_ENTRY_SRC)
 
 # Compilar kernel (C)
 $(KERNEL_OBJ): $(KERNEL_SRC)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -I$(KERNEL_DIR) $< -o $@
+
+# Compilar commands (C)
+$(COMMANDS_OBJ): $(COMMANDS_SRC)
+	$(CC) $(CFLAGS) -I$(KERNEL_DIR) $< -o $@
 
 # Linkar kernel
-$(KERNEL): $(KERNEL_ENTRY_OBJ) $(KERNEL_OBJ)
+$(KERNEL): $(KERNEL_ENTRY_OBJ) $(KERNEL_OBJ) $(COMMANDS_OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 # Criar imagem do OS (bootloader + kernel)
